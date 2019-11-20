@@ -1,0 +1,214 @@
+diff --git jobs.c jobs.c
+index a6467a8..e8a294a 100644
+--- jobs.c
++++ jobs.c
+@@ -10,11 +10,14 @@
+ #include <string.h>
+ #include <sys/time.h>
+ #include <time.h>
++#include <limits.h>
+ #include "main.h"
+ 
+ /* The list will access them */
+ int busy_slots = 0;
+ int max_slots = 1;
++int used_ram = 0;
++int max_ram = INT_MAX;
+ 
+ struct Notify
+ {
+@@ -327,6 +330,7 @@ int s_newjob(int s, struct msg *m)
+     else
+         p->state = HOLDING_CLIENT;
+     p->num_slots = m->u.newjob.num_slots;
++    p->ram_size = m->u.newjob.ram_size;
+     p->store_output = m->u.newjob.store_output;
+     p->should_keep_finished = m->u.newjob.should_keep_finished;
+     p->notify_errorlevel_to = 0;
+@@ -508,12 +512,15 @@ int next_run_job()
+     struct Job *p;
+ 
+     const int free_slots = max_slots - busy_slots;
++    const int free_ram = max_ram - used_ram;
+ 
+     /* busy_slots may be bigger than the maximum slots,
+      * if the user was running many jobs, and suddenly
+      * trimmed the maximum slots down. */
+     if (free_slots <= 0)
+         return -1;
++    if (free_ram <= 0)
++        return -1;
+ 
+     /* If there are no jobs to run... */
+     if (firstjob == 0)
+@@ -539,9 +546,10 @@ int next_run_job()
+                 }
+             }
+ 
+-            if (free_slots >= p->num_slots)
++            if ((free_slots >= p->num_slots) && (free_ram >= p->ram_size))
+             {
+                 busy_slots = busy_slots + p->num_slots;
++                used_ram = used_ram + p->ram_size;
+                 return p->jobid;
+             }
+         }
+@@ -649,6 +657,9 @@ void job_finished(const struct Result *result, int jobid)
+     if (busy_slots <= 0)
+         error("Wrong state in the server. busy_slots = %i instead of greater than 0", busy_slots);
+ 
++    if (used_ram <= 0)
++        error("Wrong state in the server. used_ram = %i instead of greater than 0", used_ram);
++
+     p = findjob(jobid);
+     if (p == 0)
+         error("on jobid %i finished, it doesn't exist", jobid);
+@@ -657,7 +668,10 @@ void job_finished(const struct Result *result, int jobid)
+      * we call this to clean up the jobs list in case of the client closing the
+      * connection. */
+     if (p->state == RUNNING)
++    {
+         busy_slots = busy_slots - p->num_slots;
++        used_ram = used_ram - p->ram_size;
++    }
+ 
+     /* Mark state */
+     if (result->skipped)
+@@ -828,6 +842,7 @@ void s_job_info(int s, int jobid)
+     write(s, p->command, strlen(p->command));
+     fd_nprintf(s, 100, "\n");
+     fd_nprintf(s, 100, "Slots required: %i\n", p->num_slots);
++    fd_nprintf(s, 100, "RAM (GB) required: %i\n", p->ram_size);
+     fd_nprintf(s, 100, "Enqueue time: %s",
+             ctime(&p->info.enqueue_time.tv_sec));
+     if (p->state == RUNNING)
+diff --git list.c list.c
+index 3b1abad..e38e83a 100644
+--- list.c
++++ list.c
+@@ -13,6 +13,8 @@
+ /* From jobs.c */
+ extern int busy_slots;
+ extern int max_slots;
++extern int used_ram;
++extern int max_ram;
+ 
+ char * joblistdump_headers()
+ {
+@@ -35,7 +37,7 @@ char * joblist_headers()
+     char * line;
+ 
+     line = malloc(100);
+-    snprintf(line, 100, "%-4s %-10s %-20s %-8s %-14s %s [run=%i/%i]\n",
++    snprintf(line, 100, "%-4s %-10s %-20s %-8s %-14s %s [run=%i/%i, ram=%i/%i]\n",
+             "ID",
+             "State",
+             "Output",
+@@ -43,7 +45,9 @@ char * joblist_headers()
+             "Times(r/u/s)",
+             "Command",
+             busy_slots,
+-            max_slots);
++            max_slots,
++            used_ram,
++            max_ram);
+ 
+     return line;
+ }
+diff --git main.c main.c
+index 16c4d47..30f92b1 100644
+--- main.c
++++ main.c
+@@ -11,6 +11,7 @@
+ 
+ #include <stdio.h>
+ #include <sys/time.h>
++#include <limits.h>
+ 
+ #include "main.h"
+ 
+@@ -25,7 +26,7 @@ int server_socket;
+ static char getopt_env[] = "POSIXLY_CORRECT=YES";
+ static char *old_getopt_env;
+ 
+-static char version[] = "Task Spooler v1.0 - a task queue system for the unix user.\n"
++static char version[] = "Task Spooler v1.1 - a task queue system for the unix user.\n"
+ "Copyright (C) 2007-2016  Lluis Batlle i Rossell";
+ 
+ 
+@@ -42,9 +43,11 @@ static void default_command_line()
+     command_line.do_depend = 0;
+     command_line.depend_on = -1; /* -1 means depend on previous */
+     command_line.max_slots = 1;
++    command_line.max_ram = INT_MAX;
+     command_line.wait_enqueuing = 1;
+     command_line.stderr_apart = 0;
+     command_line.num_slots = 1;
++    command_line.ram_size = 0;
+ }
+ 
+ void get_command(int index, int argc, char **argv)
+@@ -155,6 +158,11 @@ void parse_opts(int argc, char **argv)
+                 if (command_line.num_slots < 0)
+                     command_line.num_slots = 0;
+                 break;
++            case 'R':
++                command_line.ram_size = atoi(optarg);
++                if (command_line.ram_size < 0)
++                    command_line.ram_size = 0;
++                break;
+             case 'r':
+                 command_line.request = c_REMOVEJOB;
+                 command_line.jobid = atoi(optarg);
+@@ -375,6 +383,7 @@ static void print_help(const char *cmd)
+     printf("  -D <id>  the job will be run only if the job of given id ends well.\n");
+     printf("  -L <lab> name this task with a label, to be distinguished on listing.\n");
+     printf("  -N <num> number of slots required by the job (1 default).\n");
++    printf("  -R <ram> RAM size (GB) required by the job (no limit default).\n");
+ }
+ 
+ static void print_version()
+diff --git main.h main.h
+index a50ca29..804d333 100644
+--- main.h
++++ main.h
+@@ -79,6 +79,7 @@ struct Command_line {
+     int do_depend;
+     int depend_on; /* -1 means depend on previous */
+     int max_slots; /* How many jobs to run at once */
++    int max_ram;
+     int jobid; /* When queuing a job, main.c will fill it automatically from
+                   the server answer to NEWJOB */
+     int jobid2;
+@@ -89,6 +90,7 @@ struct Command_line {
+     } command;
+     char *label;
+     int num_slots; /* Slots for the job to use. Default 1 */
++    int ram_size;
+ };
+ 
+ enum Process_type {
+@@ -128,6 +130,7 @@ struct msg
+             int depend_on; /* -1 means depend on previous */
+             int wait_enqueuing;
+             int num_slots;
++            int ram_size;
+         } newjob;
+         struct {
+             int ofilename_size;
+@@ -152,6 +155,7 @@ struct msg
+         } swap;
+         int last_errorlevel;
+         int max_slots;
++        int max_ram;
+         int version;
+     } u;
+ };
+@@ -185,6 +189,7 @@ struct Job
+     char *label;
+     struct Procinfo info;
+     int num_slots;
++    int ram_size;
+ };
+ 
+ enum ExitCodes

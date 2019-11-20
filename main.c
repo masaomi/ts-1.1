@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include <sys/time.h>
+#include <limits.h>
 
 #include "main.h"
 
@@ -25,7 +26,7 @@ int server_socket;
 static char getopt_env[] = "POSIXLY_CORRECT=YES";
 static char *old_getopt_env;
 
-static char version[] = "Task Spooler v1.0 - a task queue system for the unix user.\n"
+static char version[] = "Task Spooler v1.1 - a task queue system for the unix user.\n"
 "Copyright (C) 2007-2016  Lluis Batlle i Rossell";
 
 
@@ -42,9 +43,11 @@ static void default_command_line()
     command_line.do_depend = 0;
     command_line.depend_on = -1; /* -1 means depend on previous */
     command_line.max_slots = 1;
+    command_line.max_ram = INT_MAX;
     command_line.wait_enqueuing = 1;
     command_line.stderr_apart = 0;
     command_line.num_slots = 1;
+    command_line.ram_size = 0;
 }
 
 void get_command(int index, int argc, char **argv)
@@ -154,6 +157,11 @@ void parse_opts(int argc, char **argv)
                 command_line.num_slots = atoi(optarg);
                 if (command_line.num_slots < 0)
                     command_line.num_slots = 0;
+                break;
+            case 'R':
+                command_line.ram_size = atoi(optarg);
+                if (command_line.ram_size < 0)
+                    command_line.ram_size = 0;
                 break;
             case 'r':
                 command_line.request = c_REMOVEJOB;
@@ -375,6 +383,7 @@ static void print_help(const char *cmd)
     printf("  -D <id>  the job will be run only if the job of given id ends well.\n");
     printf("  -L <lab> name this task with a label, to be distinguished on listing.\n");
     printf("  -N <num> number of slots required by the job (1 default).\n");
+    printf("  -R <ram> RAM size (GB) required by the job (no limit default).\n");
 }
 
 static void print_version()

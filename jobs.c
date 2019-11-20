@@ -10,11 +10,14 @@
 #include <string.h>
 #include <sys/time.h>
 #include <time.h>
+#include <limits.h>
 #include "main.h"
 
 /* The list will access them */
 int busy_slots = 0;
 int max_slots = 1;
+int used_ram = 0;
+int max_ram = INT_MAX;
 
 struct Notify
 {
@@ -327,6 +330,7 @@ int s_newjob(int s, struct msg *m)
     else
         p->state = HOLDING_CLIENT;
     p->num_slots = m->u.newjob.num_slots;
+    p->ram_size = m->u.newjob.ram_size;
     p->store_output = m->u.newjob.store_output;
     p->should_keep_finished = m->u.newjob.should_keep_finished;
     p->notify_errorlevel_to = 0;
@@ -508,11 +512,14 @@ int next_run_job()
     struct Job *p;
 
     const int free_slots = max_slots - busy_slots;
+    const int free_ram = max_ram - used_ram;
 
     /* busy_slots may be bigger than the maximum slots,
      * if the user was running many jobs, and suddenly
      * trimmed the maximum slots down. */
     if (free_slots <= 0)
+        return -1;
+    if (free_ram <= 0)
         return -1;
 
     /* If there are no jobs to run... */
@@ -539,9 +546,10 @@ int next_run_job()
                 }
             }
 
-            if (free_slots >= p->num_slots)
+            if ((free_slots >= p->num_slots) && (free_ram >= p->ram_size))
             {
                 busy_slots = busy_slots + p->num_slots;
+                used_ram = used_ram + p->ram_size;
                 return p->jobid;
             }
         }
@@ -649,6 +657,9 @@ void job_finished(const struct Result *result, int jobid)
     if (busy_slots <= 0)
         error("Wrong state in the server. busy_slots = %i instead of greater than 0", busy_slots);
 
+    if (used_ram <= 0)
+        error("Wrong state in the server. used_ram = %i instead of greater than 0", used_ram);
+
     p = findjob(jobid);
     if (p == 0)
         error("on jobid %i finished, it doesn't exist", jobid);
@@ -657,7 +668,10 @@ void job_finished(const struct Result *result, int jobid)
      * we call this to clean up the jobs list in case of the client closing the
      * connection. */
     if (p->state == RUNNING)
+    {
         busy_slots = busy_slots - p->num_slots;
+        used_ram = used_ram - p->ram_size;
+    }
 
     /* Mark state */
     if (result->skipped)
@@ -828,6 +842,7 @@ void s_job_info(int s, int jobid)
     write(s, p->command, strlen(p->command));
     fd_nprintf(s, 100, "\n");
     fd_nprintf(s, 100, "Slots required: %i\n", p->num_slots);
+    fd_nprintf(s, 100, "RAM (GB) required: %i\n", p->ram_size);
     fd_nprintf(s, 100, "Enqueue time: %s",
             ctime(&p->info.enqueue_time.tv_sec));
     if (p->state == RUNNING)

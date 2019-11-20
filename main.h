@@ -79,6 +79,7 @@ struct Command_line {
     int do_depend;
     int depend_on; /* -1 means depend on previous */
     int max_slots; /* How many jobs to run at once */
+    int max_ram;
     int jobid; /* When queuing a job, main.c will fill it automatically from
                   the server answer to NEWJOB */
     int jobid2;
@@ -89,6 +90,7 @@ struct Command_line {
     } command;
     char *label;
     int num_slots; /* Slots for the job to use. Default 1 */
+    int ram_size;
 };
 
 enum Process_type {
@@ -128,6 +130,7 @@ struct msg
             int depend_on; /* -1 means depend on previous */
             int wait_enqueuing;
             int num_slots;
+            int ram_size;
         } newjob;
         struct {
             int ofilename_size;
@@ -152,6 +155,7 @@ struct msg
         } swap;
         int last_errorlevel;
         int max_slots;
+        int max_ram;
         int version;
     } u;
 };
@@ -185,6 +189,7 @@ struct Job
     char *label;
     struct Procinfo info;
     int num_slots;
+    int ram_size;
 };
 
 enum ExitCodes
