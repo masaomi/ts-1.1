@@ -383,7 +383,7 @@ static void print_help(const char *cmd)
     printf("  -D <id>  the job will be run only if the job of given id ends well.\n");
     printf("  -L <lab> name this task with a label, to be distinguished on listing.\n");
     printf("  -N <num> number of slots required by the job (1 default).\n");
-    printf("  -R <ram> RAM size (GB) required by the job (no limit default).\n");
+    printf("  -R <ram> RAM size (GB) required by the job (0 GB required default).\n");
 }
 
 static void print_version()
