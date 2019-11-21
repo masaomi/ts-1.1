@@ -41,7 +41,10 @@ enum msg_types
     GET_MAX_SLOTS_OK,
     GET_VERSION,
     VERSION,
-    NEWJOB_NOK
+    NEWJOB_NOK,
+    SET_MAX_RAM,
+    GET_MAX_RAM,
+    GET_MAX_RAM_OK
 };
 
 enum Request
@@ -64,7 +67,9 @@ enum Request
     c_INFO,
     c_SET_MAX_SLOTS,
     c_GET_MAX_SLOTS,
-    c_KILL_JOB
+    c_KILL_JOB,
+    c_SET_MAX_RAM,
+    c_GET_MAX_RAM
 };
 
 struct Command_line {
@@ -79,7 +84,6 @@ struct Command_line {
     int do_depend;
     int depend_on; /* -1 means depend on previous */
     int max_slots; /* How many jobs to run at once */
-    int max_ram;
     int jobid; /* When queuing a job, main.c will fill it automatically from
                   the server answer to NEWJOB */
     int jobid2;
@@ -90,6 +94,7 @@ struct Command_line {
     } command;
     char *label;
     int num_slots; /* Slots for the job to use. Default 1 */
+    int max_ram;
     int ram_size;
 };
 
@@ -155,8 +160,8 @@ struct msg
         } swap;
         int last_errorlevel;
         int max_slots;
-        int max_ram;
         int version;
+        int max_ram;
     } u;
 };
 
@@ -225,6 +230,8 @@ void c_show_info();
 char *build_command_string();
 void c_send_max_slots(int max_slots);
 void c_get_max_slots();
+void c_send_max_ram(int max_ram);
+void c_get_max_ram();
 void c_check_version();
 
 /* jobs.c */
@@ -253,6 +260,9 @@ void s_job_info(int s, int jobid);
 void s_send_runjob(int s, int jobid);
 void s_set_max_slots(int new_max_slots);
 void s_get_max_slots(int s);
+void s_set_max_ram(int new_max_ram);
+void s_get_max_ram(int s);
+
 int job_is_running(int jobid);
 int job_is_holding_client(int jobid);
 int wake_hold_client();

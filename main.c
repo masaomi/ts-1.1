@@ -87,7 +87,7 @@ void parse_opts(int argc, char **argv)
 
     /* Parse options */
     while(1) {
-        c = getopt(argc, argv, ":VhKgClnfmBEr:t:c:o:p:w:k:u:s:U:i:N:L:dS:D:");
+        c = getopt(argc, argv, ":VhKgClnfmBEr:t:c:o:p:w:k:u:s:U:i:N:R:L:dS:M:D:");
 
         if (c == -1)
             break;
@@ -188,6 +188,15 @@ void parse_opts(int argc, char **argv)
                     exit(-1);
                 }
                 break;
+            case 'M':
+                command_line.request = c_SET_MAX_RAM;
+                command_line.max_ram = atoi(optarg);
+                if (command_line.max_ram < 1)
+                {
+                    fprintf(stderr, "You should set at minimum 1 GB.\n");
+                    exit(-1);
+                }
+                break;
             case 'D':
                 command_line.do_depend = 1;
                 command_line.depend_on = atoi(optarg);
@@ -264,6 +273,9 @@ void parse_opts(int argc, char **argv)
                         break;
                     case 'S':
                         command_line.request = c_GET_MAX_SLOTS;
+                        break;
+                    case 'M':
+                        command_line.request = c_GET_MAX_RAM;
                         break;
                     default:
                         fprintf(stderr, "Option %c missing argument.\n",
@@ -353,12 +365,14 @@ static void print_help(const char *cmd)
     printf("  TS_ENV  command called on enqueue. Its output determines the job information.\n");
     printf("  TS_SAVELIST  filename which will store the list, if the server dies.\n");
     printf("  TS_SLOTS   amount of jobs which can run at once, read on server start.\n");
+    printf("  TS_RAM   amount of RAM which can be used in one run, read on server start.\n");
     printf("  TMPDIR     directory where to place the output files and the default socket.\n");
     printf("Actions:\n");
     printf("  -K       kill the task spooler server\n");
     printf("  -C       clear the list of finished jobs\n");
     printf("  -l       show the job list (default action)\n");
     printf("  -S [num] get/set the number of max simultaneous jobs of the server.\n");
+    printf("  -M [num] get/set the number of max RAM size (GB) of the server.\n");
     printf("  -t [id]  \"tail -n 10 -f\" the output of the job. Last run if not specified.\n");
     printf("  -c [id]  like -t, but shows all the lines. Last run if not specified.\n");
     printf("  -p [id]  show the pid of the job. Last run if not specified.\n");
@@ -525,8 +539,14 @@ int main(int argc, char **argv)
     case c_SET_MAX_SLOTS:
         c_send_max_slots(command_line.max_slots);
         break;
+    case c_SET_MAX_RAM:
+        c_send_max_ram(command_line.max_ram);
+        break;
     case c_GET_MAX_SLOTS:
         c_get_max_slots();
+        break;
+    case c_GET_MAX_RAM:
+        c_get_max_ram();
         break;
     case c_SWAP_JOBS:
         if (!command_line.need_server)

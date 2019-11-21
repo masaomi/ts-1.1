@@ -551,6 +551,8 @@ void c_get_max_slots()
 
     /* Receive the answer */
     res = recv_msg(server_socket, &m);
+    printf("res=%d\n", res);
+    printf("sizeof(m)=%ld\n", sizeof(m));
     if(res != sizeof(m))
         error("Error in move_urgent");
     switch(m.type)
@@ -562,6 +564,45 @@ void c_get_max_slots()
             warning("Wrong internal message in get_max_slots");
     }
 }
+
+void c_send_max_ram(int max_ram)
+{
+    struct msg m;
+
+    /* Send the request */
+    m.type = SET_MAX_RAM;
+    m.u.max_ram = command_line.max_ram;
+    send_msg(server_socket, &m);
+}
+
+void c_get_max_ram()
+{
+    struct msg m;
+    int res;
+
+    /* Send the request */
+    m.type = GET_MAX_RAM;
+    m.u.max_ram = command_line.max_ram;
+    printf("command_line.max_ram=%d\n", command_line.max_ram);
+    printf("m.u.max_ram=%d\n", m.u.max_ram);
+    send_msg(server_socket, &m);
+
+    /* Receive the answer */
+    res = recv_msg(server_socket, &m);
+    printf("res=%d\n", res);
+    printf("sizeof(m)=%ld\n", sizeof(m));
+    if(res != sizeof(m))
+        error("Error in move_urgent in c_get_max_ram()");
+    switch(m.type)
+    {
+        case GET_MAX_RAM_OK:
+            printf("%i\n", m.u.max_ram);
+            return;
+        default:
+            warning("Wrong internal message in get_max_ram");
+    }
+}
+
 
 void c_move_urgent()
 {
