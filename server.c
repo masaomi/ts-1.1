@@ -110,6 +110,20 @@ static void set_default_maxslots()
     }
 }
 
+static void set_default_maxram()
+{
+    char *str;
+
+    str = getenv("TS_RAM");
+    if (str != NULL)
+    {
+        int ram;
+        ram = abs(atoi(str));
+        s_set_max_ram(ram);
+    }
+}
+
+
 static void install_sigterm_handler()
 {
   struct sigaction act;
@@ -204,6 +218,8 @@ void server_main(int notify_fd, char *_path)
     install_sigterm_handler();
 
     set_default_maxslots();
+
+    set_default_maxram();
 
     notify_parent(notify_fd);
 
@@ -472,6 +488,9 @@ static enum Break
             break;
         case SET_MAX_SLOTS:
             s_set_max_slots(m.u.max_slots);
+            break;
+        case SET_MAX_RAM:
+            s_set_max_ram(m.u.max_ram);
             break;
         case GET_MAX_SLOTS:
             s_get_max_slots(s);

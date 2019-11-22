@@ -187,6 +187,15 @@ void parse_opts(int argc, char **argv)
                     exit(-1);
                 }
                 break;
+            case 'M':
+                command_line.request = c_SET_MAX_RAM;
+                command_line.max_ram = atoi(optarg);
+                if (command_line.max_ram < 1)
+                {
+                    fprintf(stderr, "You should set at minimum 1 slot.\n");
+                    exit(-1);
+                }
+                break;
             case 'D':
                 command_line.do_depend = 1;
                 command_line.depend_on = atoi(optarg);
@@ -527,6 +536,9 @@ int main(int argc, char **argv)
         break;
     case c_SET_MAX_SLOTS:
         c_send_max_slots(command_line.max_slots);
+        break;
+    case c_SET_MAX_RAM:
+        c_send_max_ram(command_line.max_ram);
         break;
     case c_GET_MAX_SLOTS:
         c_get_max_slots();

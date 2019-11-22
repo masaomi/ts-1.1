@@ -540,6 +540,16 @@ void c_send_max_slots(int max_slots)
     send_msg(server_socket, &m);
 }
 
+void c_send_max_ram(int max_ram)
+{
+    struct msg m;
+
+    /* Send the request */
+    m.type = SET_MAX_RAM;
+    m.u.max_ram = command_line.max_ram;
+    send_msg(server_socket, &m);
+}
+
 void c_get_max_slots()
 {
     struct msg m;

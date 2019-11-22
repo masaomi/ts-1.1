@@ -1317,6 +1317,15 @@ void s_set_max_slots(int new_max_slots)
         warning("Received new_max_slots=%i", new_max_slots);
 }
 
+void s_set_max_ram(int new_max_ram)
+{
+    if (new_max_ram > 0)
+        max_ram = new_max_ram;
+    else
+        warning("Received new_max_ram=%i", new_max_ram);
+}
+
+
 void s_get_max_slots(int s)
 {
     struct msg m;

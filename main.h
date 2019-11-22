@@ -42,6 +42,7 @@ enum msg_types
     GET_VERSION,
     VERSION,
     NEWJOB_NOK,
+    SET_MAX_RAM,
     GET_MAX_RAM,
     GET_MAX_RAM_OK
 };
@@ -67,6 +68,7 @@ enum Request
     c_SET_MAX_SLOTS,
     c_GET_MAX_SLOTS,
     c_KILL_JOB,
+    c_SET_MAX_RAM,
     c_GET_MAX_RAM
 };
 
@@ -227,6 +229,7 @@ void c_swap_jobs();
 void c_show_info();
 char *build_command_string();
 void c_send_max_slots(int max_slots);
+void c_send_max_ram(int max_ram);
 void c_get_max_slots();
 void c_get_max_ram();
 void c_check_version();
@@ -256,6 +259,7 @@ const char * jstate2string(enum Jobstate s);
 void s_job_info(int s, int jobid);
 void s_send_runjob(int s, int jobid);
 void s_set_max_slots(int new_max_slots);
+void s_set_max_ram(int new_max_ram);
 void s_get_max_slots(int s);
 void s_get_max_ram(int s);
 int job_is_running(int jobid);
