@@ -329,6 +329,7 @@ int s_newjob(int s, struct msg *m)
     else
         p->state = HOLDING_CLIENT;
     p->num_slots = m->u.newjob.num_slots;
+    p->amt_ram = m->u.newjob.amt_ram;
     p->store_output = m->u.newjob.store_output;
     p->should_keep_finished = m->u.newjob.should_keep_finished;
     p->notify_errorlevel_to = 0;
@@ -510,11 +511,16 @@ int next_run_job()
     struct Job *p;
 
     const int free_slots = max_slots - busy_slots;
+    const int free_ram = max_ram - used_ram;
 
     /* busy_slots may be bigger than the maximum slots,
      * if the user was running many jobs, and suddenly
      * trimmed the maximum slots down. */
     if (free_slots <= 0)
+        return -1;
+
+
+    if (free_ram <= 0)
         return -1;
 
     /* If there are no jobs to run... */
@@ -544,6 +550,7 @@ int next_run_job()
             if (free_slots >= p->num_slots)
             {
                 busy_slots = busy_slots + p->num_slots;
+                used_ram = used_ram + p->amt_ram;
                 return p->jobid;
             }
         }
@@ -659,7 +666,10 @@ void job_finished(const struct Result *result, int jobid)
      * we call this to clean up the jobs list in case of the client closing the
      * connection. */
     if (p->state == RUNNING)
+    {
         busy_slots = busy_slots - p->num_slots;
+        used_ram = used_ram - p->amt_ram;
+    }
 
     /* Mark state */
     if (result->skipped)
@@ -830,6 +840,7 @@ void s_job_info(int s, int jobid)
     write(s, p->command, strlen(p->command));
     fd_nprintf(s, 100, "\n");
     fd_nprintf(s, 100, "Slots required: %i\n", p->num_slots);
+    fd_nprintf(s, 100, "RAM (GB) required: %i\n", p->amt_ram);
     fd_nprintf(s, 100, "Enqueue time: %s",
             ctime(&p->info.enqueue_time.tv_sec));
     if (p->state == RUNNING)

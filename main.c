@@ -84,7 +84,7 @@ void parse_opts(int argc, char **argv)
 
     /* Parse options */
     while(1) {
-        c = getopt(argc, argv, ":VhKgClnfmBEr:t:c:o:p:w:k:u:s:U:i:N:L:dS:D:");
+        c = getopt(argc, argv, ":VhKgClnfmBEr:t:c:o:p:w:k:u:s:U:i:N:L:dS:D:R:");
 
         if (c == -1)
             break;
@@ -155,6 +155,12 @@ void parse_opts(int argc, char **argv)
                 if (command_line.num_slots < 0)
                     command_line.num_slots = 0;
                 break;
+            case 'R':
+                command_line.amt_ram = atoi(optarg);
+                if (command_line.amt_ram < 0)
+                    command_line.amt_ram = 0;
+                break;
+
             case 'r':
                 command_line.request = c_REMOVEJOB;
                 command_line.jobid = atoi(optarg);
@@ -375,6 +381,7 @@ static void print_help(const char *cmd)
     printf("  -D <id>  the job will be run only if the job of given id ends well.\n");
     printf("  -L <lab> name this task with a label, to be distinguished on listing.\n");
     printf("  -N <num> number of slots required by the job (1 default).\n");
+    printf("  -R <ram> RAM size (GB) required by the job (0 GB required default).\n");
 }
 
 static void print_version()

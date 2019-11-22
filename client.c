@@ -83,6 +83,7 @@ void c_new_job()
     m.u.newjob.command_size = strlen(new_command) + 1; /* add null */
     m.u.newjob.wait_enqueuing = command_line.wait_enqueuing;
     m.u.newjob.num_slots = command_line.num_slots;
+    m.u.newjob.amt_ram = command_line.amt_ram;
 
     /* Send the message */
     send_msg(server_socket, &m);

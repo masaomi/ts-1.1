@@ -89,6 +89,7 @@ struct Command_line {
     } command;
     char *label;
     int num_slots; /* Slots for the job to use. Default 1 */
+    int amt_ram; /* RAM (GB) for the job to use. Default 0 */
 };
 
 enum Process_type {
@@ -128,6 +129,7 @@ struct msg
             int depend_on; /* -1 means depend on previous */
             int wait_enqueuing;
             int num_slots;
+            int amt_ram;
         } newjob;
         struct {
             int ofilename_size;
@@ -185,6 +187,7 @@ struct Job
     char *label;
     struct Procinfo info;
     int num_slots;
+    int amt_ram;
 };
 
 enum ExitCodes
