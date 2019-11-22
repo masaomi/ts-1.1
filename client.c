@@ -570,9 +570,8 @@ void c_get_max_ram()
     int res;
 
     /* Send the request */
-    printf("c_get_max_ram()\n");
-    m.type = GET_MAX_SLOTS;
-    m.u.max_slots = command_line.max_slots;
+    m.type = GET_MAX_RAM;
+    m.u.max_ram = command_line.max_ram;
     send_msg(server_socket, &m);
 
     /* Receive the answer */
@@ -581,8 +580,8 @@ void c_get_max_ram()
         error("Error in move_urgent");
     switch(m.type)
     {
-        case GET_MAX_SLOTS_OK:
-            printf("%i\n", m.u.max_slots);
+        case GET_MAX_RAM_OK:
+            printf("%i\n", m.u.max_ram);
             return;
         default:
             warning("Wrong internal message in get_max_ram");

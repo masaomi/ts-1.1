@@ -45,6 +45,7 @@ static void default_command_line()
     command_line.wait_enqueuing = 1;
     command_line.stderr_apart = 0;
     command_line.num_slots = 1;
+    command_line.max_ram = 1;
 }
 
 void get_command(int index, int argc, char **argv)

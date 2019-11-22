@@ -1328,6 +1328,17 @@ void s_get_max_slots(int s)
     send_msg(s, &m);
 }
 
+void s_get_max_ram(int s)
+{
+    struct msg m;
+
+    /* Message */
+    m.type = GET_MAX_RAM_OK;
+    m.u.max_ram = max_ram;
+
+    send_msg(s, &m);
+}
+
 void s_move_urgent(int s, int jobid)
 {
     struct Job *p = 0;

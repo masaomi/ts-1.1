@@ -41,7 +41,9 @@ enum msg_types
     GET_MAX_SLOTS_OK,
     GET_VERSION,
     VERSION,
-    NEWJOB_NOK
+    NEWJOB_NOK,
+    GET_MAX_RAM,
+    GET_MAX_RAM_OK
 };
 
 enum Request
@@ -91,6 +93,7 @@ struct Command_line {
     char *label;
     int num_slots; /* Slots for the job to use. Default 1 */
     int amt_ram; /* RAM (GB) for the job to use. Default 0 */
+    int max_ram;
 };
 
 enum Process_type {
@@ -156,6 +159,7 @@ struct msg
         int last_errorlevel;
         int max_slots;
         int version;
+        int max_ram;
     } u;
 };
 
@@ -253,6 +257,7 @@ void s_job_info(int s, int jobid);
 void s_send_runjob(int s, int jobid);
 void s_set_max_slots(int new_max_slots);
 void s_get_max_slots(int s);
+void s_get_max_ram(int s);
 int job_is_running(int jobid);
 int job_is_holding_client(int jobid);
 int wake_hold_client();

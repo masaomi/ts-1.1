@@ -476,6 +476,9 @@ static enum Break
         case GET_MAX_SLOTS:
             s_get_max_slots(s);
             break;
+        case GET_MAX_RAM:
+            s_get_max_ram(s);
+            break;
         case SWAP_JOBS:
             s_swap_jobs(s, m.u.swap.jobid1,
                     m.u.swap.jobid2);
