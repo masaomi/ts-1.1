@@ -13,6 +13,8 @@
 /* From jobs.c */
 extern int busy_slots;
 extern int max_slots;
+extern int used_ram;
+extern int max_ram;
 
 char * joblistdump_headers()
 {
@@ -34,8 +36,8 @@ char * joblist_headers()
 {
     char * line;
 
-    line = malloc(100);
-    snprintf(line, 100, "%-4s %-10s %-20s %-8s %-14s %s [run=%i/%i]\n",
+    line = malloc(130);
+    snprintf(line, 130, "%-4s %-10s %-20s %-8s %-14s %s [run=%i/%i] [ram=%i/%i]\n",
             "ID",
             "State",
             "Output",
@@ -43,7 +45,9 @@ char * joblist_headers()
             "Times(r/u/s)",
             "Command",
             busy_slots,
-            max_slots);
+            max_slots,
+            used_ram,
+            max_ram);
 
     return line;
 }
