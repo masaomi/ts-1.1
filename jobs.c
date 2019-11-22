@@ -15,6 +15,8 @@
 /* The list will access them */
 int busy_slots = 0;
 int max_slots = 1;
+int used_ram = 0;
+int max_ram = 1;
 
 struct Notify
 {
