@@ -48,7 +48,6 @@ char * joblist_headers()
             max_slots,
             used_ram,
             max_ram);
-
     return line;
 }
 
