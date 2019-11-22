@@ -547,7 +547,7 @@ int next_run_job()
                 }
             }
 
-            if (free_slots >= p->num_slots)
+            if (free_slots >= p->num_slots && free_ram >= p->amt_ram)
             {
                 busy_slots = busy_slots + p->num_slots;
                 used_ram = used_ram + p->amt_ram;
