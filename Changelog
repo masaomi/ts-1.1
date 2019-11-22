@@ -11,6 +11,8 @@ Doubtful tasks:
 Future:
  - Use a better system than mkstemp() for finding output files, so we can add
    .gz to the gzipped outputs.
+v1.1:
+ - Add option -R, -M, to manage RAM (GB) as well as slots.
 v1.0:
  - Respect TMPDIR for output files.
 v0.7.6:
