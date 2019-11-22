@@ -1,3 +1,8 @@
+Task Spooler
+------------
+
+This is a fork of [Task Spooler](http://vicerveza.homeunix.net/~viric/soft/ts/) by  **Lluís Batlle i Rossell**.
+
 Users
 ------------------------
 If you are in a system which understands POSIX and has the GNU toolkit, you
