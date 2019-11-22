@@ -84,7 +84,7 @@ void parse_opts(int argc, char **argv)
 
     /* Parse options */
     while(1) {
-        c = getopt(argc, argv, ":VhKgClnfmBEr:t:c:o:p:w:k:u:s:U:i:N:L:dS:D:R:");
+        c = getopt(argc, argv, ":VhKgClnfmBEr:t:c:o:p:w:k:u:s:U:i:N:L:dS:D:R:M:");
 
         if (c == -1)
             break;
@@ -263,6 +263,9 @@ void parse_opts(int argc, char **argv)
                     case 'S':
                         command_line.request = c_GET_MAX_SLOTS;
                         break;
+                    case 'M':
+                        command_line.request = c_GET_MAX_RAM;
+                        break;
                     default:
                         fprintf(stderr, "Option %c missing argument.\n",
                                 optopt);
@@ -357,6 +360,7 @@ static void print_help(const char *cmd)
     printf("  -C       clear the list of finished jobs\n");
     printf("  -l       show the job list (default action)\n");
     printf("  -S [num] get/set the number of max simultaneous jobs of the server.\n");
+    printf("  -M [num] get/set the number of max RAM (GB) of the server.\n");
     printf("  -t [id]  \"tail -n 10 -f\" the output of the job. Last run if not specified.\n");
     printf("  -c [id]  like -t, but shows all the lines. Last run if not specified.\n");
     printf("  -p [id]  show the pid of the job. Last run if not specified.\n");
@@ -525,6 +529,9 @@ int main(int argc, char **argv)
         break;
     case c_GET_MAX_SLOTS:
         c_get_max_slots();
+        break;
+    case c_GET_MAX_RAM:
+        c_get_max_ram();
         break;
     case c_SWAP_JOBS:
         if (!command_line.need_server)

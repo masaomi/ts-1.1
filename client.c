@@ -564,6 +564,31 @@ void c_get_max_slots()
     }
 }
 
+void c_get_max_ram()
+{
+    struct msg m;
+    int res;
+
+    /* Send the request */
+    printf("c_get_max_ram()\n");
+    m.type = GET_MAX_SLOTS;
+    m.u.max_slots = command_line.max_slots;
+    send_msg(server_socket, &m);
+
+    /* Receive the answer */
+    res = recv_msg(server_socket, &m);
+    if(res != sizeof(m))
+        error("Error in move_urgent");
+    switch(m.type)
+    {
+        case GET_MAX_SLOTS_OK:
+            printf("%i\n", m.u.max_slots);
+            return;
+        default:
+            warning("Wrong internal message in get_max_ram");
+    }
+}
+
 void c_move_urgent()
 {
     struct msg m;

@@ -64,7 +64,8 @@ enum Request
     c_INFO,
     c_SET_MAX_SLOTS,
     c_GET_MAX_SLOTS,
-    c_KILL_JOB
+    c_KILL_JOB,
+    c_GET_MAX_RAM
 };
 
 struct Command_line {
@@ -223,6 +224,7 @@ void c_show_info();
 char *build_command_string();
 void c_send_max_slots(int max_slots);
 void c_get_max_slots();
+void c_get_max_ram();
 void c_check_version();
 
 /* jobs.c */
